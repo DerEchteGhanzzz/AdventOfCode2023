@@ -1,4 +1,4 @@
-module Dijkstra where
+module App.Dijkstra where
 
 import Data.List as L
 import Data.Map as M

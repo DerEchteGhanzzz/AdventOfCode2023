@@ -1,7 +1,7 @@
 module Main where
 
 import Data.Time
-import DayX
+import App.DayX
 
 timeFunction :: IO () -> IO ()
 timeFunction function = do

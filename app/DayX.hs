@@ -1,4 +1,4 @@
-module DayX where
+module App.DayX where
 
 import Data.List
 
