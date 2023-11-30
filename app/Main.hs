@@ -3,10 +3,10 @@ module Main where
 import Data.Time
 import DayX
 
-timeFunction :: IO () -> IO ()
+timeFunction :: String -> IO ()
 timeFunction function = do
   startTime <- getCurrentTime
-  function
+  putStr function
   endTime <- getCurrentTime
   let diff = diffUTCTime endTime startTime
   putStrLn $ " in: " ++ show (diffToMs diff)
@@ -17,7 +17,7 @@ timeFunction function = do
 -- ghc --make Main.hs -hidir hiFiles -odir oFiles
 main = do
   input <- readFile "inputFiles/inputDayX.txt"
-  timeFunction $ putStr $ "A: " ++ (solveA . lines $ input)
-  timeFunction $ putStr $ "B: " ++ (solveB . lines $ input)
+  timeFunction $ "A: " ++ (solveA . lines $ input)
+  timeFunction $ "B: " ++ (solveB . lines $ input)
 
 -- alternately, main = print . map readInt . words =<< readFile "test.txt"
