@@ -28,7 +28,7 @@ solveDay i a b = do
   putStrLn "-----------------------------------------------------------"
   input <- readFile $ "inputFiles/inputDay"++show i++".txt"
   putStrLn $ "Day " ++ show i ++ ": "
-  timeFunction $ putStr $ "A: " ++ (a . lines $ input)
-  timeFunction $ putStr $ "B: " ++ (b . lines $ input)
+  timeFunction $ "A: " ++ (a . lines $ input)
+  timeFunction $ "B: " ++ (b . lines $ input)
 
 -- alternately, main = print . map readInt . words =<< readFile "test.txt"

@@ -10,6 +10,16 @@
   (major1) == 0 && (major2) <  1 || \
   (major1) == 0 && (major2) == 1 && (minor) <= 0)
 #endif /* MIN_VERSION_AOC2023 */
+/* package MissingH-1.6.0.1 */
+#ifndef VERSION_MissingH
+#define VERSION_MissingH "1.6.0.1"
+#endif /* VERSION_MissingH */
+#ifndef MIN_VERSION_MissingH
+#define MIN_VERSION_MissingH(major1,major2,minor) (\
+  (major1) <  1 || \
+  (major1) == 1 && (major2) <  6 || \
+  (major1) == 1 && (major2) == 6 && (minor) <= 0)
+#endif /* MIN_VERSION_MissingH */
 /* package base-4.16.4.0 */
 #ifndef VERSION_base
 #define VERSION_base "4.16.4.0"

@@ -5,27 +5,24 @@ import Data.List.Utils (replace)
 solveA :: [String] -> String
 solveA input = show $ foldr (\x i -> 
   let n = filter isDigit x 
-  in i + fstlst n) 0 input
+  in i + fstlstNum n) 0 input
+  where
+    fstlstNum str = read [head str, last str]
 
 solveB :: [String] -> String
-solveB input = show $ foldr (\x acc -> 
-  let ns = filterNumbers x
-  in acc + fstlst ns) 0 input
+solveB = solveA . map textNumsToDigits
 
-fstlst :: String -> Int
-fstlst xs = read [head xs, last xs]
-
-filterNumbers :: String -> String
-filterNumbers str = filter isDigit $ foldr (\(s, r) acc -> replace s r acc) str numbersMap
+textNumsToDigits :: String -> String
+textNumsToDigits str = foldr (\(s, r) acc ->  replace s (s++r++s) acc) str numbersMap
 
 numbersMap :: [(String, String)]
-numbersMap =  [ ("one", "o1n")
-              , ("two", "t2o")
-              , ("three", "t3e")
-              , ("four", "f4r")
-              , ("five", "f5e")
-              , ("six", "s6x")
-              , ("seven", "s7n")
-              , ("eight", "e8t")
-              , ("nine", "n9e")
+numbersMap =  [ ("one", "1")
+              , ("two", "2")
+              , ("three", "3")
+              , ("four", "4")
+              , ("five", "5")
+              , ("six", "6")
+              , ("seven", "7")
+              , ("eight", "8")
+              , ("nine", "9")
               ]
