@@ -1,7 +1,9 @@
 module Main where
 
 import Data.Time
-import DayX
+import DayX as DX
+import Day1
+import Day2
 
 timeFunction :: IO () -> IO ()
 timeFunction function = do
@@ -16,8 +18,18 @@ timeFunction function = do
 
 -- ghc --make Main.hs -hidir hiFiles -odir oFiles
 main = do
-  input <- readFile "inputFiles/inputDayX.txt"
-  timeFunction $ putStr $ "A: " ++ (solveA . lines $ input)
-  timeFunction $ putStr $ "B: " ++ (solveB . lines $ input)
+  solveDay 1 Day1.solveA Day1.solveB
+  solveDay 2 Day2.solveA Day2.solveB
+
+type Solver = [String] -> String
+
+solveDay :: Int -> Solver -> Solver -> IO ()
+solveDay i a b = do
+  putStrLn "-----------------------------------------------------------"
+  input <- readFile $ "inputFiles/inputDay"++show i++".txt"
+  putStrLn $ "Day " ++ show i ++ ": "
+  timeFunction $ putStr $ "A: " ++ (a . lines $ input)
+  timeFunction $ putStr $ "B: " ++ (b . lines $ input)
+
 
 -- alternately, main = print . map readInt . words =<< readFile "test.txt"
