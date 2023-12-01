@@ -5,10 +5,10 @@ import DayX as DX
 import Day1
 import Day2
 
-timeFunction :: IO () -> IO ()
+timeFunction :: String -> IO ()
 timeFunction function = do
   startTime <- getCurrentTime
-  function
+  putStr function
   endTime <- getCurrentTime
   let diff = diffUTCTime endTime startTime
   putStrLn $ " in: " ++ show (diffToMs diff)
@@ -30,6 +30,5 @@ solveDay i a b = do
   putStrLn $ "Day " ++ show i ++ ": "
   timeFunction $ putStr $ "A: " ++ (a . lines $ input)
   timeFunction $ putStr $ "B: " ++ (b . lines $ input)
-
 
 -- alternately, main = print . map readInt . words =<< readFile "test.txt"
