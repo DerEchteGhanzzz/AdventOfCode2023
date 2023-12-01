@@ -1,6 +1,7 @@
 module Main where
 
 import Data.Time
+import AocUtils
 import DayX as DX
 import Day1
 import Day2
@@ -11,24 +12,21 @@ timeFunction function = do
   putStr function
   endTime <- getCurrentTime
   let diff = diffUTCTime endTime startTime
-  putStrLn $ " in: " ++ show (diffToMs diff)
+  putStrLn $ " in: " ++ diffToMs diff
   where
     diffToMs :: NominalDiffTime -> String
     diffToMs t = init (show $ t * 10 ^ 3) ++ " ms"
 
--- ghc --make Main.hs -hidir hiFiles -odir oFiles
 main = do
-  solveDay 1 Day1.solveA Day1.solveB
-  solveDay 2 Day2.solveA Day2.solveB
+  solveDay day1
+  solveDay day2
 
-type Solver = [String] -> String
-
-solveDay :: Int -> Solver -> Solver -> IO ()
-solveDay i a b = do
+solveDay :: AocDay -> IO ()
+solveDay (MkDay i a b) = do
   putStrLn "-----------------------------------------------------------"
   input <- readFile $ "inputFiles/inputDay"++show i++".txt"
   putStrLn $ "Day " ++ show i ++ ": "
   timeFunction $ "A: " ++ (a . lines $ input)
   timeFunction $ "B: " ++ (b . lines $ input)
 
--- alternately, main = print . map readInt . words =<< readFile "test.txt"
+-- ghc --make Main.hs -hidir hiFiles -odir oFiles

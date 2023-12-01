@@ -1,19 +1,21 @@
-module Day1 where
+module Day1 (day1) where
+import AocUtils
 import Data.Char
 import Data.List.Utils (replace)
 
+day1 :: AocDay
+day1 = MkDay 1 solveA solveB
+
 solveA :: [String] -> String
 solveA input = show $ foldr (\x i -> 
-  let n = filter isDigit x 
-  in i + fstlstNum n) 0 input
-  where
-    fstlstNum str = read [head str, last str]
+  let n = filter isDigit x
+  in i + read [head n, last n]) 0 input
 
 solveB :: [String] -> String
 solveB = solveA . map textNumsToDigits
 
 textNumsToDigits :: String -> String
-textNumsToDigits str = foldr (\(s, r) acc ->  replace s (s++r++s) acc) str numbersMap
+textNumsToDigits str = foldr (\(s, r) acc -> replace s (s++r++s) acc) str numbersMap
 
 numbersMap :: [(String, String)]
 numbersMap =  [ ("one", "1")

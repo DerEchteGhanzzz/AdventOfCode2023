@@ -31,3 +31,7 @@ choose n k
 factorial :: Int -> Int
 factorial 0 = 1
 factorial n = product [1 .. n]
+
+type Solver = [String] -> String
+
+data AocDay = MkDay Int Solver Solver
