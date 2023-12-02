@@ -40,6 +40,16 @@
   (major1) == 0 && (major2) <  6 || \
   (major1) == 0 && (major2) == 6 && (minor) <= 5)
 #endif /* MIN_VERSION_containers */
+/* package split-0.2.4 */
+#ifndef VERSION_split
+#define VERSION_split "0.2.4"
+#endif /* VERSION_split */
+#ifndef MIN_VERSION_split
+#define MIN_VERSION_split(major1,major2,minor) (\
+  (major1) <  0 || \
+  (major1) == 0 && (major2) <  2 || \
+  (major1) == 0 && (major2) == 2 && (minor) <= 4)
+#endif /* MIN_VERSION_split */
 /* package time-1.11.1.1 */
 #ifndef VERSION_time
 #define VERSION_time "1.11.1.1"
