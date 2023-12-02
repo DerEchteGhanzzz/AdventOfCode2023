@@ -17,36 +17,32 @@ data Game = MkGame {getID :: Int, getCubeSets :: [CubeSet]}
 day2 :: AocDay
 day2 = MkDay 2 solveA solveB
 
+cubeToTriple :: Cube -> (Int, Int, Int)
+cubeToTriple (MkCube i Red)   = (i, 0, 0)
+cubeToTriple (MkCube i Green) = (0, i, 0)
+cubeToTriple (MkCube i Blue)  = (0, 0, i)
+
 setSum :: CubeSet -> (Int, Int, Int)
-setSum =
-  foldr
-    ( \cube (r, g, b) ->
-        case getColor cube of
-          Red -> (r + getAmount cube, g, b)
-          Green -> (r, g + getAmount cube, b)
-          Blue -> (r, g, b + getAmount cube)
-    )
-    (0, 0, 0)
-
-isValidGame :: Game -> Int -> Int -> Int -> Bool
-isValidGame game red green blue = all (checkIfEnough . setSum) (getCubeSets game)
+setSum = foldr (tripAdd . cubeToTriple) (0, 0, 0)
   where
-    checkIfEnough (r, g, b) = r <= red && g <= green && b <= blue
+    tripAdd (a, b, c) (x, y, z) = (a + x, b + y, c + z)
 
-getValidGames :: [Game] -> [Game]
-getValidGames = foldr (\game acc -> if isValidGame game 12 13 14 then game : acc else acc) []
+isValidGame :: Int -> Int -> Int -> Game -> Bool
+isValidGame maxRed maxGreen maxBlue game = all (checkIfEnough . setSum) (getCubeSets game)
+  where
+    checkIfEnough (r, g, b) = r <= maxRed && g <= maxGreen && b <= maxBlue
 
 minSetPower :: Game -> Int
-minSetPower game = tupleMult . foldr (\cset acc -> tupCompare acc (setSum cset)) (0, 0, 0) $ getCubeSets game
+minSetPower game = tripMult . foldr (tripMax . setSum) (0, 0, 0) $ getCubeSets game
   where
-    tupleMult (a, b, c) = a * b * c
-    tupCompare (a, b, c) (x, y, z) = (max a x, max b y, max c z)
+    tripMult (a, b, c) = a * b * c
+    tripMax (a, b, c) (x, y, z) = (max a x, max b y, max c z)
 
 solveA :: [String] -> String
-solveA input = show $ foldr (\game acc -> acc + getID game) 0 $ getValidGames $ parseInput input
+solveA input = show . sum . map getID . filter (isValidGame 12 13 14) $ parseInput input
 
 solveB :: [String] -> String
-solveB input = show $ foldr (\game acc -> acc + minSetPower game) 0 $ parseInput input
+solveB input = show . sum . map minSetPower $ parseInput input
 
 ---------------------------------------------------------------------------------------------------------------------
 -- PARSING ----------------------------------------------------------------------------------------------------------
