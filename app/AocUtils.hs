@@ -3,22 +3,15 @@ module AocUtils where
 import Data.List as L
 import Data.Map as M
 
-data Point2D = P2 {getX :: Int, getY :: Int}
-  deriving (Eq)
+type Point = (Int, Int)
 
-type Vector = Point2D
+type Vector = Point
 
 vecLength :: Vector -> Int
-vecLength (P2 x y) = abs x + abs y
+vecLength (x, y) = abs x + abs y
 
-manhattan :: Point2D -> Point2D -> Int
-manhattan (P2 x1 y1) (P2 x2 y2) = abs (x2 - x1) + abs (y2 - y1)
-
-instance Ord Point2D where
-  compare p1 p2 = compare (vecLength p1) (vecLength p2)
-
-instance Show Point2D where
-  show (P2 x y) = "(" ++ show x ++ ", " ++ show y ++ ")"
+manhattan :: Point -> Point -> Int
+manhattan (x1, y1) (x2, y2) = abs (x2 - x1) + abs (y2 - y1)
 
 gauss :: Int -> Int
 gauss n = n * (n + 1) `div` 2
@@ -32,8 +25,8 @@ factorial :: Int -> Int
 factorial 0 = 1
 factorial n = product [1 .. n]
 
-getElem2D :: [[a]] -> Int -> Int -> Maybe a
-getElem2D array2d y x = do
+getElem2D :: [[a]] -> Point -> Maybe a
+getElem2D array2d (x, y) = do
       row <- if y < length array2d && y >= 0 then Just (array2d !! y) else Nothing
       if x < length row && x >= 0 then Just (row !! x) else Nothing
 

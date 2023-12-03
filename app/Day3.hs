@@ -6,72 +6,57 @@ import Data.Maybe
 import Data.List
 import Debug.Trace
 
-type PartNumber = Int
-type Schematic = [String]
-
-data GearNumber = MkGN {value :: Int, getGears :: [(Int, Int)]}
-  deriving (Show)
-
-instance Eq GearNumber where
-  (MkGN _ gears1) == (MkGN _ gears2) = any (`elem` gears2) gears1
-
-multGearNumbers :: GearNumber -> GearNumber -> Int
-multGearNumbers g1 g2 = value g1 * value g2
-
 day3 :: AocDay
 day3 = MkDay 3 solveA solveB
+
+type Schematic = [String]
+
+data Part = MkPart {getPartChar :: Char, getCoord :: (Int, Int)}
+  deriving (Eq, Show)
+
+data PartNumber = MkPN {value :: Int, getParts :: [Part]}
+  deriving (Show)
+
+instance Eq PartNumber where
+  (MkPN _ gears1) == (MkPN _ gears2) = any (`elem` gears2) gears1
+
+multGearNumbers :: PartNumber -> PartNumber -> Int
+multGearNumbers g1 g2 = value g1 * value g2
 
 getPartNumbers :: [String] -> [PartNumber]
 getPartNumbers s = getPartNumbers' (0, 0) s s
 
-getPartNumbers' :: (Int, Int) -> Schematic -> Schematic -> [PartNumber]
+getPartNumbers' :: Point -> Schematic -> Schematic -> [PartNumber]
 getPartNumbers' _ _ [] = []
-getPartNumbers' (r, c) scheme ([]:rows) = getPartNumbers' (0, c+1) scheme rows
-getPartNumbers' (r, c) scheme ((ch:chs):rows) = case number of
+getPartNumbers' pos@(r, c) scheme ([]:rows) = getPartNumbers' (0, c+1) scheme rows
+getPartNumbers' pos@(r, c) scheme ((ch:chs):rows) = case number of
   [] -> getPartNumbers' (r+1, c) scheme (chs:rows)
-  n  -> case surroundingChars of
-    "" -> getPartNumbers' (r+numlen, c) scheme (rest:rows)
-    _  -> read n : getPartNumbers' (r+numlen, c) scheme (rest:rows)
+  n  -> case surroundingParts of
+    [] -> getPartNumbers' (r+numlen, c) scheme (rest:rows)
+    _  -> MkPN (read n) surroundingParts : getPartNumbers' (r+numlen, c) scheme (rest:rows)
   where
-    surroundingChars = mapMaybe (\(x, y) -> 
-      case getElem y x of
+    surroundingParts = mapMaybe (\(x, y) ->
+      case getElem2D scheme pos of
         Nothing -> Nothing
-        Just symb -> if (not . isDigit) symb && symb /= '.' then Just symb else Nothing) 
+        Just symb -> if (not . isDigit) symb && symb /= '.' then Just (MkPart symb (x, y)) else Nothing)
       [(x, y) | y <- [c-1..c+1], x <- [r-1..r+numlen]]
     (number, rest) = span isDigit (ch:chs)
     numlen = length number
-    getElem = getElem2D scheme
+
+getGearPairs :: [PartNumber] -> [(PartNumber, PartNumber)]
+getGearPairs = getGearPairs' . filter (any ((=='*') . getPartChar) . getParts)
+
+getGearPairs' :: [PartNumber] -> [(PartNumber, PartNumber)]
+getGearPairs' [] = []
+getGearPairs' (gn:gns) = case adjacent of
+  Nothing  -> getGearPairs' gns
+  Just gn2 -> (gn, gn2) : getGearPairs' rest
+  where
+    (adjacent, rest) = foldr (\gn2 (adj, filt) -> if gn2 == gn then (Just gn2, filt) else (adj, gn2:filt)) (Nothing, []) gns
 
 solveA :: [String] -> String
-solveA = show . sum . getPartNumbers
+solveA = show . foldr ((+) . value) 0 . getPartNumbers
 
 solveB :: [String] -> String
-solveB = show . sum . getGearRatios . getGearPositions
+solveB = show . foldr ((+) . uncurry multGearNumbers) 0 . getGearPairs . getPartNumbers
 
-getGearRatios :: [GearNumber] -> [Int]
-getGearRatios [] = []
-getGearRatios (gn:gns) = case adjacent of
-  [] -> getGearRatios gns
-  [g] -> multGearNumbers gn g : getGearRatios filtered
-  _   -> error "apparently there could be more"
-  where
-    adjacent = filter (==gn) gns
-    filtered = filter (/=gn) gns
-
-getGearPositions :: [String] -> [GearNumber]
-getGearPositions s = getGearPositions' (0, 0) s s
-
-getGearPositions' :: (Int, Int) -> Schematic -> Schematic -> [GearNumber]
-getGearPositions' _ _ [] = []
-getGearPositions' (r, c) scheme ([]:rows) = getGearPositions' (0, c+1) scheme rows
-getGearPositions' (r, c) scheme ((ch:chs):rows) = case number of
-  [] -> getGearPositions' (r+1, c) scheme (chs:rows)
-  n  -> case surroundingGears of
-    [] -> getGearPositions' (r+numlen, c) scheme (rest:rows)
-    _  -> MkGN (read n) surroundingGears : getGearPositions' (r+numlen, c) scheme (rest:rows)
-  where
-    surroundingGears = filter (\(x, y) -> getElem y x == Just '*') [(x, y) | y <- [c-1..c+1], x <- [r-1..r+numlen]]
-    (number, rest) = span isDigit (ch:chs)
-    numlen = length number
-    getElem = getElem2D scheme
-    

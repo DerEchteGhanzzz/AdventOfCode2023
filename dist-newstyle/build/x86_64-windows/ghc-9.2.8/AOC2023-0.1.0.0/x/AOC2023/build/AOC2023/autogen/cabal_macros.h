@@ -40,6 +40,16 @@
   (major1) == 0 && (major2) <  6 || \
   (major1) == 0 && (major2) == 6 && (minor) <= 5)
 #endif /* MIN_VERSION_containers */
+/* package regex-compat-0.95.2.1 */
+#ifndef VERSION_regex_compat
+#define VERSION_regex_compat "0.95.2.1"
+#endif /* VERSION_regex_compat */
+#ifndef MIN_VERSION_regex_compat
+#define MIN_VERSION_regex_compat(major1,major2,minor) (\
+  (major1) <  0 || \
+  (major1) == 0 && (major2) <  95 || \
+  (major1) == 0 && (major2) == 95 && (minor) <= 2)
+#endif /* MIN_VERSION_regex_compat */
 /* package split-0.2.4 */
 #ifndef VERSION_split
 #define VERSION_split "0.2.4"
