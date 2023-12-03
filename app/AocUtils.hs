@@ -32,6 +32,11 @@ factorial :: Int -> Int
 factorial 0 = 1
 factorial n = product [1 .. n]
 
+getElem2D :: [[a]] -> Int -> Int -> Maybe a
+getElem2D array2d y x = do
+      row <- if y < length array2d && y >= 0 then Just (array2d !! y) else Nothing
+      if x < length row && x >= 0 then Just (row !! x) else Nothing
+
 type Solver = [String] -> String
 
 data AocDay = MkDay Int Solver Solver
