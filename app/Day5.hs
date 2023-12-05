@@ -3,7 +3,6 @@ module Day5 (day5) where
 import AocUtils
 import Data.List.Split
 import Data.Maybe
-import Debug.Trace
 
 day5 :: AocDay
 day5 = MkDay 5 solveA solveB
@@ -14,45 +13,58 @@ solveA input = show . minimum . seedsToLocation $ (s, m)
     (s, m, _) = parseInput input
 
 solveB :: [String] -> String
-solveB input = show . foldl (flip parseSeedRange) (toRanges seeds) $ literalMaps
+solveB input = show . getBegin . minimum . foldr (\s acc -> mapToLocation literalMaps [s] ++ acc) [] $ toRanges seeds
   where
     (seeds, maps, literalMaps) = parseInput input
+
+mapToLocation :: [[(Int, Int, Int)]] -> [Range] -> [Range]
+mapToLocation ms rs
+  = foldl
+      (\ rs' m -> foldr (\ r acc -> insertRange m r ++ acc) [] rs') rs ms
 
 toRanges :: [Int] -> [Range]
 toRanges [] = []
 toRanges (b:e:rest) = Range b e : toRanges rest
 
-parseSeedRange :: [(Int, Int, Int)] -> [Range] -> [Range]
-parseSeedRange maps ranges = foldr (\rs scs -> insertRange rs scs) (map (\(_, s, l) -> Range s l) maps) ranges
+insertRange :: [(Int, Int, Int)] -> Range -> [Range]
+insertRange rest (Range x 0) = []
+insertRange [] r             = [r]
+insertRange ((d, s, mapLen):rest) r1@(Range b bLen) | not (hasOverlap r1 mapRange) = insertRange rest r1
+                                                    | r1 `inside` mapRange = [mapFromSToD r1 s d]
+                                                    | mapRange `inside` r1 = insertRange rest (Range b (s-b)) ++ [mapFromSToD (Range s mapLen) s d] ++ insertRange rest (Range (s+mapLen) (b+bLen-s-mapLen))
+                                                    | b < s = mapFromSToD (snd bSmall) s d : insertRange rest (fst bSmall)
+                                                    | b > s = mapFromSToD (fst bBig) s d : insertRange rest (snd bBig)
+                                                    | otherwise = error "range not covered"
+                                                    where
+                                                      bSmall = overlapL r1 mapRange
+                                                      bBig = overlapR mapRange r1
+                                                      mapRange = Range s mapLen
 
-insertRange :: Range -> [Range] -> [Range]
-insertRange (Range x 0) rest = rest
-insertRange r [] = [r]
-insertRange r1@(Range b bLen) (r2@(Range s sLen):rest) | not (hasOverlap r1 r2) = r2 : insertRange r1 rest
-                                                       | r1 `inside` r2 = r2 : rest
-                                                       | r2 `inside` r1 = foldr insertRange rest [Range b (s-b), Range s sLen, Range (sLen+2) (b+bLen-(sLen+1))]
-                                                       | otherwise = trace (show newRanges) foldr insertRange rest newRanges
-                                                       where
-                                                        newRanges = if getLength lb1 <= 0 || getLength ls1 <= 0 then [rb1, rs1] else [lb1, ls1]
-                                                        (lb1, ls1, rb1, rs1) = overlap r1 r2
+mapFromSToD :: Range -> Int -> Int -> Range
+mapFromSToD (Range b e) s d = Range (abs (s-b) + d) e
 
 inside :: Range -> Range -> Bool
 inside r1@(Range b bLen) r2@(Range s sLen) = s <= b && b <= s+sLen && s <= b+bLen && b+bLen <= s+sLen
 
-overlap :: Range -> Range -> (Range, Range, Range, Range)
-overlap r1@(Range b bLen) r2@(Range s sLen) = (Range b (s-b+1), Range s (b+bLen-s), Range b (b+bLen-s), Range s (s-b+1))
+overlapL :: Range -> Range -> (Range, Range)
+overlapL r1@(Range b bLen) r2@(Range s sLen) = (Range b (s-b), Range s (b+bLen-s))
+
+overlapR :: Range -> Range -> (Range, Range)
+overlapR r1@(Range leftStart leftLen) r2@(Range rightStart rightLen) = (Range rightStart ((leftStart+leftLen)-rightStart), Range (leftStart+leftLen) (rightLen+rightStart-(leftStart+leftLen)))
 
 hasOverlap :: Range -> Range -> Bool
 hasOverlap r1@(Range b bLen) r2@(Range s sLen) = (b <= s && b+bLen > s) || (s <= b && s+sLen > b)
 
 data Range = Range {getBegin :: Int, getLength :: Int}
-  deriving (Show)
 
 instance Eq Range where
   (Range b e) == (Range s l) = b == s
 
 instance Ord Range where
   (Range b e) <= (Range s l) = b <= s
+
+instance Show Range where
+  show (Range b l) = show b ++ " -> " ++ show (b+l-1)
 
 seedsToLocation :: ([Int], [[Int -> Maybe Int]]) -> [Int]
 seedsToLocation (seeds, maps) = map
