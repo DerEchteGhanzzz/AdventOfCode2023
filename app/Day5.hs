@@ -8,17 +8,17 @@ day5 :: AocDay
 day5 = MkDay 5 solveA solveB
 
 solveA :: [String] -> String
-solveA input = show . minimum . seedsToLocation $ (s, m)
+solveA input = (show . getBegin . minimum) (foldr ((\s acc -> seedsToLocation maps [s] ++ acc) . (`Range` 1)) [] seeds)
   where
-    (s, m, _) = parseInput input
+    (seeds, maps) = parseInput input
 
 solveB :: [String] -> String
-solveB input = show . getBegin . minimum . foldr (\s acc -> mapToLocation literalMaps [s] ++ acc) [] $ toRanges seeds
+solveB input = show . getBegin . minimum . foldr (\s acc -> seedsToLocation maps [s] ++ acc) [] $ toRanges seeds
   where
-    (seeds, maps, literalMaps) = parseInput input
+    (seeds, maps) = parseInput input
 
-mapToLocation :: [[(Int, Int, Int)]] -> [Range] -> [Range]
-mapToLocation ms rs
+seedsToLocation :: [[(Int, Int, Int)]] -> [Range] -> [Range]
+seedsToLocation ms rs
   = foldl
       (\ rs' m -> foldr (\ r acc -> insertRange m r ++ acc) [] rs') rs ms
 
@@ -50,10 +50,10 @@ overlapL :: Range -> Range -> (Range, Range)
 overlapL r1@(Range b bLen) r2@(Range s sLen) = (Range b (s-b), Range s (b+bLen-s))
 
 overlapR :: Range -> Range -> (Range, Range)
-overlapR r1@(Range leftStart leftLen) r2@(Range rightStart rightLen) = (Range rightStart ((leftStart+leftLen)-rightStart), Range (leftStart+leftLen) (rightLen+rightStart-(leftStart+leftLen)))
+overlapR r1@(Range leftStart leftLen) r2@(Range rightStart rightLen) = (Range rightStart (leftStart+leftLen-rightStart), Range (leftStart+leftLen) (rightLen+rightStart-(leftStart+leftLen)))
 
 hasOverlap :: Range -> Range -> Bool
-hasOverlap r1@(Range b bLen) r2@(Range s sLen) = (b <= s && b+bLen > s) || (s <= b && s+sLen > b)
+hasOverlap r1@(Range b bLen) r2@(Range s sLen) = b <= s && b+bLen > s || s <= b && s+sLen > b
 
 data Range = Range {getBegin :: Int, getLength :: Int}
 
@@ -66,35 +66,14 @@ instance Ord Range where
 instance Show Range where
   show (Range b l) = show b ++ " -> " ++ show (b+l-1)
 
-seedsToLocation :: ([Int], [[Int -> Maybe Int]]) -> [Int]
-seedsToLocation (seeds, maps) = map
-      ( \seed ->
-          foldl
-            (\s m -> head . mapMaybe (\lambda -> lambda s) $ m)
-            seed
-            maps
-      ) seeds
-
-parseInput :: [String] -> ([Int], [[Int -> Maybe Int]], [[(Int, Int, Int)]])
-parseInput input = (parseSeeds s, map parseMap m, map parseMap' m)
+parseInput :: [String] -> ([Int], [[(Int, Int, Int)]])
+parseInput input = (parseSeeds s, map parseMap m)
   where
     (s : m) = splitOn [""] input
 
-parseMap' :: [String] -> [(Int, Int, Int)]
-parseMap' (_ : numbers) = map ((\[d, s, l] -> (read d, read s, read l)) . words) numbers
+parseMap :: [String] -> [(Int, Int, Int)]
+parseMap (_ : numbers) = map ((\[d, s, l] -> (read d, read s, read l)) . words) numbers
 
 parseSeeds :: [String] -> [Int]
 parseSeeds [line] = map read . tail . words $ line
 parseSeeds x      = error $ show x ++ " is invalid input"
-
-parseMap :: [String] -> [Int -> Maybe Int]
-parseMap (_ : numbers) =
-  foldr
-    ( ( \[d, s, l] acc ->
-          let srs = read s; drs = read d; rl = read l
-           in (\x -> if x >= srs && x <= srs + rl - 1 then Just $ abs (srs - x) + drs else Nothing) : acc
-      )
-        . words
-    )
-    [Just]
-    numbers
