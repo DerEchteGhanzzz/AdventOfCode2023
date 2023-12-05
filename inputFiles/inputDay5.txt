@@ -1,2 +1,4 @@
-If you're reading this:
-the parser is working!
+seeds: 4 10
+
+seed-to-soil map:
+2 2 6
