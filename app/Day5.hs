@@ -57,6 +57,12 @@ hasOverlap r1@(Range b bLen) r2@(Range s sLen) = b <= s && b+bLen > s || s <= b 
 
 data Range = Range {getBegin :: Int, getLength :: Int}
 
+start :: Range -> Int
+start (Range a _) = a
+
+end :: Range -> Int
+end (Range a b) = a + b
+
 instance Eq Range where
   (Range b e) == (Range s l) = b == s
 
