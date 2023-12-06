@@ -1,2 +1,2 @@
-If you're reading this:
-the parser is working!
+Time:        50     74     86     85
+Distance:   242   1017   1691   1252
