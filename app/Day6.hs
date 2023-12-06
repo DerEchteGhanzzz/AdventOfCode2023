@@ -24,7 +24,7 @@ winPermutations :: Race -> Int
 winPermutations (MkRace t bestDist) = floor $ upper - lower
   where
     disc = (t^2) - (4 * bestDist)
-    (lower, upper) = (((-t) + sqrt disc) / (-2), ((-t) - sqrt disc) / (-2))
+    (lower, upper) = ((t - sqrt disc) / 2, (t + sqrt disc) / 2)
 
 parseInput :: [String] -> [Race]
 parseInput [times, distances] = zipWith MkRace (readNumbers times) (readNumbers distances)
