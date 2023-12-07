@@ -1,4 +1,3 @@
-{-# LANGUAGE EmptyCase #-}
 module Day7 (day7) where
 import AocUtils
 import Data.Map as M (insert, empty, toList, lookup)
