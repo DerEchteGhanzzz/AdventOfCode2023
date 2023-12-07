@@ -2,6 +2,10 @@ module AocUtils where
 
 import Data.List as L
 import Data.Map as M
+import Debug.Trace
+
+ptrace :: Show a => a -> a 
+ptrace a = trace (show a) a 
 
 type Point = (Int, Int)
 

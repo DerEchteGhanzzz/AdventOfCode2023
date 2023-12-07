@@ -5,7 +5,6 @@ import Data.Map as M (insert, empty, toList, lookup)
 import Data.List (sort, sortBy, sortOn)
 import qualified Data.Ord
 import Data.Ord (comparing)
-import Debug.Trace
 import Data.Char
 import Data.List.Utils (replace)
 
