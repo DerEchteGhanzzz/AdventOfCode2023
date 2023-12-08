@@ -36,7 +36,7 @@ getPartNumbers' pos@(r, c) scheme ((ch:chs):rows) = case number of
     _  -> MkPN (read n) surroundingParts : getPartNumbers' (r+numlen, c) scheme (rest:rows)
   where
     surroundingParts = mapMaybe (\(x, y) ->
-      case getElem2D scheme pos of
+      case getElem2D scheme (x, y) of
         Nothing -> Nothing
         Just symb -> if (not . isDigit) symb && symb /= '.' then Just (MkPart symb (x, y)) else Nothing)
       [(x, y) | y <- [c-1..c+1], x <- [r-1..r+numlen]]
@@ -59,4 +59,3 @@ solveA = show . foldr ((+) . value) 0 . getPartNumbers
 
 solveB :: [String] -> String
 solveB = show . foldr ((+) . uncurry multGearNumbers) 0 . getGearPairs . getPartNumbers
-
