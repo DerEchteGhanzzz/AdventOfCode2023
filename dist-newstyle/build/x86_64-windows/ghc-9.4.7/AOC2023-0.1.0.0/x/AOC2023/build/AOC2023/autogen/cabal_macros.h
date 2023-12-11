@@ -40,6 +40,26 @@
   (major1) == 0 && (major2) <  6 || \
   (major1) == 0 && (major2) == 6 && (minor) <= 7)
 #endif /* MIN_VERSION_containers */
+/* package gloss-1.13.2.2 */
+#ifndef VERSION_gloss
+#define VERSION_gloss "1.13.2.2"
+#endif /* VERSION_gloss */
+#ifndef MIN_VERSION_gloss
+#define MIN_VERSION_gloss(major1,major2,minor) (\
+  (major1) <  1 || \
+  (major1) == 1 && (major2) <  13 || \
+  (major1) == 1 && (major2) == 13 && (minor) <= 2)
+#endif /* MIN_VERSION_gloss */
+/* package heap-1.0.4 */
+#ifndef VERSION_heap
+#define VERSION_heap "1.0.4"
+#endif /* VERSION_heap */
+#ifndef MIN_VERSION_heap
+#define MIN_VERSION_heap(major1,major2,minor) (\
+  (major1) <  1 || \
+  (major1) == 1 && (major2) <  0 || \
+  (major1) == 1 && (major2) == 0 && (minor) <= 4)
+#endif /* MIN_VERSION_heap */
 /* package regex-compat-0.95.2.1 */
 #ifndef VERSION_regex_compat
 #define VERSION_regex_compat "0.95.2.1"
