@@ -25,42 +25,54 @@ intToBin n totalLength = if n < 0 then error "no negatives" else intToBin' n ++ 
         ch = if even n then '.' else '#'
 
 getCombinations :: [SpringRow] -> [Int]
-getCombinations = L.foldr ((:) . length . calcCombs) []
+getCombinations = L.foldr ((:) . calcCombs) []
 
-calcCombs :: SpringRow -> Set String
-calcCombs (row, ints) = S.filter (`isValid` ints) binsToCheck
+calcCombs :: SpringRow -> Int
+calcCombs (row, ints) = ptrace ("doing " ++ row) binsToCheck
   where
     setQMarks r b = L.foldr (\ch (row', b') -> if ch == '?' then (head b' : row', drop 1 b') else (ch:row', b')) ([], b) r
     hashesNeeded = sum ints - charCount '#' row
     qmarks = charCount '?' row
-    binsToCheck = combs row hashesNeeded qmarks
-    charCount c = length . L.filter (==c)
-    --S.foldr (\b acc -> let row' = fst $ setQMarks row b in if isValid row' ints then row' : acc else acc) [] binsToCheck
+    binsToCheck = combs row hashesNeeded qmarks ints ""
 
-combs :: String -> Int -> Int -> Set String
-combs s ones totalLen = case s of
-  ('?':chs) -> case (ones, totalLen) of
-    (0, _) -> S.singleton ('.' : replace "?" "." chs)
-    (_, _) -> if ones == totalLen then S.singleton ('#' : replace "?" "#" chs)
-                else S.map ('.':) (combs chs ones (totalLen-1)) `S.union` S.map ('#':) (combs chs (ones - 1) (totalLen - 1))
-  (ch:chs) -> S.map (ch:) (combs chs ones totalLen)
-  []       -> S.singleton []
+charCount :: Eq a => a -> [a] -> Int
+charCount c = length . L.filter (==c)
+
+stillValid :: String -> [Int] -> Int -> Bool
+stillValid str ints total = if length str == total
+  then
+    length zipped == length ints && length zipped == length parts && all (\(s, i) -> length s == i) zipped
+  else
+    (length begin == 1 && all (\(s, i) -> length s == i) zipped) ||
+    length parts <= length ints && all (\(s, i) -> length s == i) begin && all (\(s, i) -> length s <= i) zipped
+  where
+    parts = wordsBy (=='.') str
+    zipped = zip parts ints
+    (begin, end) = splitAt (length zipped - 1) zipped
+
+combs :: String -> Int -> Int -> [Int] -> String -> Int
+combs s ones totalLen ints acc =
+  if not $ stillValid acc ints (length acc + length s)
+    then 0
+    else case s of
+      ('?':chs) -> case (ones, totalLen) of
+        (-1, _) -> 0
+        (_, -1) -> 0
+        (_, _) -> combs chs ones (totalLen-1) ints (acc++".") + 
+                  combs chs (ones - 1) (totalLen - 1) ints (acc++"#")
+      (ch:chs) -> combs chs ones totalLen ints (acc++[ch])
+      []       -> if stillValid acc ints (length acc + length s) then 1 else 0
 
 isValid :: String -> [Int] -> Bool
 isValid row ints = (L.map length . wordsBy (=='.') . L.filter (/='?') $ row) == ints
 
 solveA :: [String] -> String
-solveA = show . sum . L.map (length . calcCombs) . parseInput
-
-intLogBase :: Int -> Int -> Int
-intLogBase b n = round $ logBase (fromIntegral b) (fromIntegral n)
+solveA = show . sum . L.map calcCombs . parseInput
 
 solveB :: [String] -> String
-solveB input = show old
+solveB = show . sum . L.map (calcCombs . expand) . parseInput
   where
-    parsedInput = parseInput input
-    new = L.map ((length . calcCombs) . (\(row, ints) -> let row' = '?':row; ints' = concat $ replicate 2 ints in ('?':row++['?'], ints))) parsedInput
-    old = L.map (length . calcCombs) parsedInput
+    expand (row, ints) = let row' = tail $ concat (replicate 5 ('?':row)); ints' = concat $ replicate 5 ints in (row', ints')
 
 parseInput :: [String] -> [SpringRow]
 parseInput = L.map (\l -> let [row, counts] = words l in (row, L.map read $ splitOn "," counts))
