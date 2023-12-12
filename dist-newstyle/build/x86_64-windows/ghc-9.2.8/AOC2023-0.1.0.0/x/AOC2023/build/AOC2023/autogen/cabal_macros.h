@@ -60,6 +60,16 @@
   (major1) == 1 && (major2) <  0 || \
   (major1) == 1 && (major2) == 0 && (minor) <= 4)
 #endif /* MIN_VERSION_heap */
+/* package memoize-1.1.2 */
+#ifndef VERSION_memoize
+#define VERSION_memoize "1.1.2"
+#endif /* VERSION_memoize */
+#ifndef MIN_VERSION_memoize
+#define MIN_VERSION_memoize(major1,major2,minor) (\
+  (major1) <  1 || \
+  (major1) == 1 && (major2) <  1 || \
+  (major1) == 1 && (major2) == 1 && (minor) <= 2)
+#endif /* MIN_VERSION_memoize */
 /* package regex-compat-0.95.2.1 */
 #ifndef VERSION_regex_compat
 #define VERSION_regex_compat "0.95.2.1"

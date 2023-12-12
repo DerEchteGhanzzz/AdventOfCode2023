@@ -51,5 +51,6 @@ executable AOC2023
                       , regex-compat
                       , heap
                       , gloss
+                      , memoize
     hs-source-dirs:   app
     default-language: Haskell2010

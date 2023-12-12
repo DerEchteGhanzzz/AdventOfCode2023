@@ -2,9 +2,12 @@ module Day12 (day12) where
 import AocUtils
 import Data.List.Split (splitOn, wordsBy)
 import Data.Char
-import Data.Set as S (Set, empty, insert, singleton, union, map, foldr, fromList, filter)
+import Data.Set as S (Set, empty, insert, singleton, union, map, foldr, fromList, filter, unions)
 import Data.List as L
 import Data.List.Utils (replace)
+import Data.Function (fix)
+import Data.Function.Memoize
+{-# LANGUAGE BangPatterns #-}
 
 day12 :: AocDay
 day12 = MkDay 12 solveA solveB
@@ -24,11 +27,8 @@ intToBin n totalLength = if n < 0 then error "no negatives" else intToBin' n ++ 
       where
         ch = if even n then '.' else '#'
 
-getCombinations :: [SpringRow] -> [Int]
-getCombinations = L.foldr ((:) . calcCombs) []
-
-calcCombs :: SpringRow -> Int
-calcCombs (row, ints) = ptrace ("doing " ++ row) binsToCheck
+calcCombs :: Bool -> SpringRow -> Int
+calcCombs isB (row, ints) = binsToCheck
   where
     setQMarks r b = L.foldr (\ch (row', b') -> if ch == '?' then (head b' : row', drop 1 b') else (ch:row', b')) ([], b) r
     hashesNeeded = sum ints - charCount '#' row
@@ -58,7 +58,7 @@ combs s ones totalLen ints acc =
       ('?':chs) -> case (ones, totalLen) of
         (-1, _) -> 0
         (_, -1) -> 0
-        (_, _) -> combs chs ones (totalLen-1) ints (acc++".") + 
+        (_, _) -> combs chs ones (totalLen-1) ints (acc++".") +
                   combs chs (ones - 1) (totalLen - 1) ints (acc++"#")
       (ch:chs) -> combs chs ones totalLen ints (acc++[ch])
       []       -> if stillValid acc ints (length acc + length s) then 1 else 0
@@ -67,12 +67,38 @@ isValid :: String -> [Int] -> Bool
 isValid row ints = (L.map length . wordsBy (=='.') . L.filter (/='?') $ row) == ints
 
 solveA :: [String] -> String
-solveA = show . sum . L.map calcCombs . parseInput
+solveA = show . sum . L.map minCrit . parseInput
 
 solveB :: [String] -> String
-solveB = show . sum . L.map (calcCombs . expand) . parseInput
+solveB input = show . sum $ largeAnswer 
   where
-    expand (row, ints) = let row' = tail $ concat (replicate 5 ('?':row)); ints' = concat $ replicate 5 ints in (row', ints')
+    largeExpand (row, ints) = (row++'?':row++'?':row++'?':row++'?':row, concat $ replicate 5 ints)
+    largeAnswer = L.map (minCrit . largeExpand) . parseInput $ input
 
 parseInput :: [String] -> [SpringRow]
 parseInput = L.map (\l -> let [row, counts] = words l in (row, L.map read $ splitOn "," counts))
+
+
+minCrit :: (String, [Int]) -> Int
+minCrit (row, ints) = L.foldr (\counts acc -> ptrace (counts, maxLen, ints) $ let str = interweave counts ints in if isValid str ints && isRight row str then acc + 1 else acc) 0 $ ptrace (length allInts) allInts
+  where
+    strLen = length row
+    padLen = strLen - sum ints
+    maxLen = (length ints - 1) + 2
+    allInts = listsWithSum padLen maxLen $ max 1 maxCount
+    maxCount = strLen - sum ints - (length ints - 1)
+
+listsWithSum :: Int -> Int -> Int -> [[Int]]
+listsWithSum _ _ _ = []
+
+isRight :: String -> String -> Bool
+isRight ('?':rs) (s:ss) = isRight rs ss
+isRight (r:rs) (s:ss) = r == s && isRight rs ss
+isRight [] [] = True
+isRight _ _ = False
+
+interweave :: [Int] -> [Int] -> String
+interweave [] _ = []
+interweave (c:cs) (i:is) = replicate c '.' ++ replicate i '#' ++ interweave cs is
+interweave [c] [] = replicate c '.'
+
