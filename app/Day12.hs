@@ -67,7 +67,7 @@ solveA :: [String] -> String
 solveA = show . L.map calcCombs . parseInput
 
 solveB :: [String] -> String
-solveB input = show . sum . L.map (calcCombs . expand) . parseInput $ input
+solveB input = "nee"
   where
     expand (row, ints) = (row++'?':row++'?':row++'?':row++'?':row, concat $ replicate 5 ints)
     largeAnswer = L.map (calcCombs . expand) . parseInput $ input
