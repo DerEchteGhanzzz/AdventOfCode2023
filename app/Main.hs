@@ -40,7 +40,7 @@ main = do
   solveDay day9
   solveDay day10
   --solveDay day11
-  -- solveDay day12
+  solveDay day12
   solveDay day13
 
 solveDay :: AocDay -> IO ()
