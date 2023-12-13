@@ -15,6 +15,7 @@ import Day9
 import Day10
 import Day11
 import Day12
+import Day13
 
 timeFunction :: String -> IO ()
 timeFunction function = do
@@ -39,7 +40,8 @@ main = do
   solveDay day9
   solveDay day10
   --solveDay day11
-  solveDay day12
+  -- solveDay day12
+  solveDay day13
 
 solveDay :: AocDay -> IO ()
 solveDay (MkDay i a b) = do

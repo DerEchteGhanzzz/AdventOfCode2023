@@ -27,8 +27,8 @@ intToBin n totalLength = if n < 0 then error "no negatives" else intToBin' n ++ 
       where
         ch = if even n then '.' else '#'
 
-calcCombs :: Bool -> SpringRow -> Int
-calcCombs isB (row, ints) = binsToCheck
+calcCombs :: SpringRow -> Int
+calcCombs (row, ints) = binsToCheck
   where
     setQMarks r b = L.foldr (\ch (row', b') -> if ch == '?' then (head b' : row', drop 1 b') else (ch:row', b')) ([], b) r
     hashesNeeded = sum ints - charCount '#' row
@@ -67,13 +67,13 @@ isValid :: String -> [Int] -> Bool
 isValid row ints = (L.map length . wordsBy (=='.') . L.filter (/='?') $ row) == ints
 
 solveA :: [String] -> String
-solveA = show . sum . L.map minCrit . parseInput
+solveA = show . sum . L.map calcCombs . parseInput
 
 solveB :: [String] -> String
 solveB input = show . sum $ largeAnswer 
   where
     largeExpand (row, ints) = (row++'?':row++'?':row++'?':row++'?':row, concat $ replicate 5 ints)
-    largeAnswer = L.map (minCrit . largeExpand) . parseInput $ input
+    largeAnswer = L.map (calcCombs . largeExpand) . parseInput $ input
 
 parseInput :: [String] -> [SpringRow]
 parseInput = L.map (\l -> let [row, counts] = words l in (row, L.map read $ splitOn "," counts))
