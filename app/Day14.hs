@@ -35,19 +35,17 @@ spin :: [String] -> [String]
 spin = tilt90deg . tilt90deg . tilt90deg . tilt90deg
 
 tilt90deg :: [String] -> [String]
-tilt90deg = L.map (tilt . reverse) . transpose
+tilt90deg = L.map (moveRocks . reverse) . transpose
 
-tilt :: String -> String
-tilt = tilt' [] 1 ""
+moveRocks :: String -> String
+moveRocks = moveRocks' [] ""
 
-tilt' :: String -> Int -> String -> String -> String
-tilt' rocksFound index acc col = case col of
+moveRocks' :: String -> String -> String -> String
+moveRocks' rocksFound acc col = case col of
   [] -> acc ++ rocksFound
-  ('#':chs) -> tilt' [] index' (acc ++ rocksFound ++ "#") chs
-  ('.':chs) -> tilt' rocksFound index' (acc ++ ".") chs
-  ('O':chs) -> tilt' ('O':rocksFound) index' acc chs
-  where
-    index' = index + 1
+  ('#':chs) -> moveRocks' [] (acc ++ rocksFound ++ "#") chs
+  ('.':chs) -> moveRocks' rocksFound (acc ++ ".") chs
+  ('O':chs) -> moveRocks' ('O':rocksFound) acc chs
 
 tiltAndWeigh :: String -> Int
 tiltAndWeigh = tiltAndWeigh' [] 1 0

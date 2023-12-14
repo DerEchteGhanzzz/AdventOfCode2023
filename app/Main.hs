@@ -44,7 +44,7 @@ main = do
   --solveDay day11
   solveDay day12
   solveDay day13
-  --solveDay day14
+  -- solveDay day14
   solveDay day15
 
 solveDay :: AocDay -> IO ()
