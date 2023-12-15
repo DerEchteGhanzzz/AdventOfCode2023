@@ -3,7 +3,6 @@ import AocUtils
 import Data.List.Split (splitOn, wordsBy, splitWhen)
 import Data.Char
 import Data.Map as M
-import Data.Set as S (Set, empty, insert, singleton, union, map, foldr, fromList, filter, unions)
 import Data.List as L
 import Data.List.Utils (replace)
 import Data.Function (fix)
@@ -12,67 +11,44 @@ import Data.Function.Memoize
 day12 :: AocDay
 day12 = MkDay 12 solveA solveB
 
-type SpringRow = (String, [Int])
+calcCombs :: (String, [Int]) -> Int
+calcCombs = fst . calcCombs' M.empty 0 0 0
 
-calcCombs :: SpringRow -> Int
-calcCombs (row, ints) = {-ptrace binsToCheck-} fst binsToCheck
+charAmt :: Eq a => [a] -> a -> Int
+charAmt str c = length . L.filter (==c) $ str
+
+calcCombs' :: Map (Int, Int, Int) Int -> Int -> Int -> Int -> (String, [Int]) -> (Int, Map (Int, Int, Int) Int) 
+calcCombs' memoMap idx critIdx hashHad (row, crits) = case mt `M.lookup` memoMap of
+  Just n -> (n, memoMap)
+  Nothing | critIdx == length crits -> if row `charAmt` '#' == 0 then (1, M.insert mt 1 memoMap) else (0, M.insert mt 0 memoMap)
+          | L.null row -> if critIdx == length crits - 1 && hashHad == crits !! critIdx then (1, M.insert mt 1 memoMap) else (0, M.insert mt 0 memoMap)
+          | head row == '?' -> if hashHad == crits !! critIdx then calcCombs' memoMap idx' critIdx' 0 (tail row, crits) else
+            if hashHad < crits !! critIdx 
+              then let (r, memoMap') = calcCombs' memoMap idx' critIdx hashHad' (tail row, crits) in 
+                if hashHad == 0 
+                  then let (l, memoMap'') = calcCombs' memoMap' idx' critIdx hashHad (tail row, crits) in 
+                    (r + l, M.insert mt (r+l) memoMap'')
+                  else (r, M.insert mt r memoMap')
+              else (0, M.insert mt 0 memoMap)
+          | head row == '#' -> 
+            if hashHad' > crits !! critIdx 
+              then (0, M.insert mt 0 memoMap) 
+              else let (m, memoMap') = calcCombs' memoMap idx' critIdx hashHad' (tail row, crits) in 
+                (m, M.insert mt m memoMap')
+          | hashHad /= 0 && hashHad /= crits !! critIdx -> (0, M.insert mt 0 memoMap)
+          | hashHad == crits !! critIdx -> let (m, memoMap') = calcCombs' memoMap idx' critIdx' 0 (tail row, crits) in (m, M.insert mt m memoMap')
+          | otherwise -> let (m, memoMap') = calcCombs' memoMap idx' critIdx 0 (tail row, crits) in (m, M.insert mt m memoMap')
   where
-    setQMarks r b = L.foldr (\ch (row', b') -> if ch == '?' then (head b' : row', L.drop 1 b') else (ch:row', b')) ([], b) r
-    hashesNeeded = sum ints - charCount '#' row
-    qmarks = charCount '?' row
-    binsToCheck = combs M.empty "" row ints 0 0
-
-charCount :: Eq a => a -> [a] -> Int
-charCount c = length . L.filter (==c)
-
-stillValid :: String -> [Int] -> Int -> Bool
-stillValid str ints total = if length str == total
-  then
-    length zipped == length ints && length zipped == length parts && all (\(s, i) -> length s == i) zipped
-  else
-    length begin == 1 && all (\(s, i) -> length s == i) zipped ||
-    length parts <= length ints && all (\(s, i) -> length s == i) begin && all (\(s, i) -> length s <= i) zipped
-  where
-    parts = wordsBy (=='.') str
-    zipped = zip parts ints
-    (begin, end) = L.splitAt (length zipped - 1) zipped
-
-combs :: Map (Int, Int) Int -> String -> String -> [Int] -> Int -> Int -> (Int, Map (Int, Int) Int)
-combs memoMap seenChars unseenChars ints index intIndex = case x `M.lookup` memoMap of
-  Just answer -> ptrace ("cachehit", x, seenChars, unseenChars, answer) (answer, memoMap)
-  _ ->
-        case unseenChars of
-        ('?':chs) -> (right + left, M.insert x (right + left) memoMap'')
-            where
-              (right, memoMap') = if goSubproblem "." then 
-                let (ans, m) = combs memoMap "" chs (L.drop 1 ints) (index+1) (intIndex+1) in (ans, M.insert x ans m)
-              else combs memoMap  (seenChars++".") chs ints (index+1) intIndex
-              (left, memoMap'') = if goSubproblem "#" then 
-                let (ans, m) = combs memoMap "" chs (L.drop 1 ints) (index+1) (intIndex+1) in (ans, M.insert x ans m)
-              else combs memoMap  (seenChars++"#") chs ints (index+1) intIndex
-        (ch:chs) -> (middle, M.insert x middle mm)
-          where
-            (middle, mm) = combs memoMap (seenChars ++ [ch]) chs ints (index+1) intIndex
-        []       -> ptrace ("end", x, seenChars++unseenChars) $ if isValid seenChars ints then ptrace 1 (1, M.insert x 1 memoMap) else ptrace 0 (0, M.insert x 0 memoMap)
-  where
-    x = (index, intIndex)
-    goSubproblem c = (seenChars ++ c) `satisfies` ints
-satisfies :: String -> [Int] -> Bool
-satisfies []  []   = True
-satisfies row []   = False
-satisfies []  ints = False
-satisfies row ints = '#' `elem` row && length (head hashWords) == head ints && last row == '.' 
-  where
-    hashWords = wordsBy (=='.') row
-
-isValid :: String -> [Int] -> Bool
-isValid row ints = (L.map length . wordsBy (=='.') . L.filter (/='?') $ row) == ints
+    mt = (idx, critIdx, hashHad)
+    idx' = idx + 1
+    hashHad' = hashHad + 1
+    critIdx' = critIdx + 1
 
 solveA :: [String] -> String
-solveA = show . L.map calcCombs . parseInput
+solveA = show . sum . L.map calcCombs . parseInput
 
 solveB :: [String] -> String
-solveB input = "nee"
+solveB input = show . sum $ largeAnswer
   where
     expand (row, ints) = (row++'?':row++'?':row++'?':row++'?':row, concat $ replicate 5 ints)
     largeAnswer = L.map (calcCombs . expand) . parseInput $ input
