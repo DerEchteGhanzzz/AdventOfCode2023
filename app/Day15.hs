@@ -46,11 +46,11 @@ insertLens lens (x:xs) | fst lens == fst x = lens:xs
 insertInBoxes :: [Box] -> String -> [Box]
 insertInBoxes boxes lensStr = insertInBoxes' 0 n op (label, i) boxes
   where
-    (label, power) = span isAlpha lensStr
-    (i, op)    =
+    (label, power) = span (\x -> x /= '-' && x /= '=') lensStr
+    (i, op) =
       if '-' `elem` lensStr 
-        then (-1, removeLens) 
-        else (read $ dropWhile (not . isDigit) power, insertLens)
+        then (-1, removeLens)
+        else (read $ tail power, insertLens)
     n = encrypt label
 
 insertInBoxes' :: Int -> Int -> BoxOp -> Lens -> [Box] -> [Box]
