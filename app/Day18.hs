@@ -31,8 +31,8 @@ digTrench pos@(x,y) m ((dir, amt):is) = digTrench pos' m' is
     pos' = case dir of
       R -> (x+amt, y)
       L -> (x-amt, y)
-      U -> (x, y-amt)
-      D -> (x, y+amt)
+      U -> (x, y+amt)
+      D -> (x, y-amt)
 
 shoelace :: Integral a => (a, a) -> [(a, a)] -> a
 shoelace (minX, minY) s = abs $ area `div` 2
@@ -41,12 +41,12 @@ shoelace (minX, minY) s = abs $ area `div` 2
     zipped = zip s (tail s ++ [head s])
 
 getArea :: [(Direction, Integer)] -> Integer
-getArea instrs = shoelace (minX, minY) trench + circomverence `div` 2 + 1
+getArea instrs = shoelace (minX, minY) trench + circumference `div` 2 + 1
   where
     trench = digTrench (0, 0) [] instrs
     minX = toInteger . minimum . L.map fst $ trench
     minY = toInteger . minimum . L.map snd $ trench
-    circomverence = fst $ L.foldr (\p (acc, prevP) -> (acc + manhattan p prevP, p)) (0, head trench) trench
+    circumference = fst $ L.foldr (\p (acc, prevP) -> (acc + manhattan p prevP, p)) (0, head trench) trench
 
 solveA :: [String] -> String
 solveA = show . getArea . L.map (\str -> let [dir, amt, _] = words str in (read dir, read amt))
@@ -55,5 +55,4 @@ solveB :: [String] -> String
 solveB = show . getArea . parseInput
   where
     parseInput = L.map parseLine
-    parseLine str = let hexCode = L.filter isAlphaNum . last . words $ str in (toDir . last $ hexCode, hexToDecimal . init $ hexCode)
-    toDir i = toEnum . read $ [i]
+    parseLine str = let hexCode = L.filter isAlphaNum . last . words $ str in (toEnum . read $ [last hexCode], hexToDecimal . init $ hexCode)
