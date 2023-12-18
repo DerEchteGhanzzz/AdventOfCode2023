@@ -75,13 +75,3 @@ shoelace (minX, minY) s = abs $ area `div` 2
     area = L.foldl (\tot ((x1, y1), (x2, y2)) -> (x1-minX)*(y2-minY) - (y1-minY)*(x2-minX) + tot) 0 zipped
     zipped = zip s (tail s ++ [head s])
     s' = L.take (length s - 1) s
-
-floodFill :: Set Point -> Set Point
-floodFill trenchMap = floodFill' [(1, -1)] S.empty
-  where
-    floodFill' :: [Point] -> Set Point -> Set Point
-    floodFill' [] visited = visited
-    floodFill' (pos@(x, y):queue) visited = if pos `S.member` trenchMap || pos `S.member` visited then floodFill' queue visited else
-      floodFill' (queue ++ [(x+i, y+j) | i <- [-1, 0, 1], j <- [-1, 0, 1], abs i /= abs j, (x+i, y+j) `S.notMember` visited]) visited'
-      where
-        visited' = pos `S.insert` visited
