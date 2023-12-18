@@ -1,5 +1,5 @@
 module Day18 (day18) where
-import AocUtils
+import AocUtils hiding (Point)
 
 import Data.Map as M
 import Data.List as L
@@ -10,78 +10,50 @@ import qualified Data.Bifunctor
 day18 :: AocDay
 day18 = MkDay 18 solveA solveB
 
+type Point = (Integer, Integer)
+
+data Direction = R | D | L | U
+  deriving (Show, Eq, Ord, Enum, Read)
+
 hexToDecimal :: String -> Integer
-hexToDecimal = L.foldl (\acc x -> acc * 16 + hexDigitToInt x) 0
+hexToDecimal = L.foldl (\acc x -> acc * 16 + hexDigitToInt x) 0 . L.map toUpper
    where
     hexDigitToInt x
           | isDigit x = toInteger $ ord x - ord '0'
-          | x >= 'a' && x <= 'f' = toInteger $ ord x - ord 'a' + 10
+          | x >= 'A' && x <= 'F' = toInteger $ ord x - ord 'A' + 10
           | otherwise = error $ show x
 
-digTrench :: Point -> [Point] -> [String] -> [Point]
+digTrench :: Point -> [Point] -> [(Direction, Integer)] -> [Point]
 digTrench _ m [] = m
-digTrench pos@(x,y) m (instr:is) = digTrench pos' m' is
+digTrench pos@(x,y) m ((dir, amt):is) = digTrench pos' m' is
   where
-    [dir, amtStr, color] = words instr
-    amt = read amtStr
     m' = m ++ [pos']
     pos' = case dir of
-      "R" -> (x+amt, y)
-      "L" -> (x-amt, y)
-      "U" -> (x, y+amt)
-      "D" -> (x, y-amt)
-      _ -> error $ "unknown pattern: " ++ show dir
-
-type Line = (Point, Point)
-
-digLargeTrench :: IPoint -> [IPoint] -> [String] -> [IPoint]
-digLargeTrench _ s [] = s
-digLargeTrench pos@(x,y) s (instr:is) = digLargeTrench pos' s' is
-  where
-    [_, _, color] = words instr
-    amt = hexToDecimal (L.take 5 $ L.drop 2 color) --read amtStr
-    newDir = color !! 7
-    s' = s ++ [pos]
-    pos' = case newDir of
-      '0' -> (x+amt, y)
-      '2' -> (x-amt, y)
-      '3' -> (x, y-amt)
-      '1' -> (x, y+amt)
-      _ -> error $ "unknown pattern: " ++ show newDir
-
-solveA :: [String] -> String
-solveA input = show . sum $ [shoelace (minX, minY) trench, circomverence `div` 2, 1]
-  where
-    trench = L.map (Data.Bifunctor.bimap toInteger toInteger) $ digTrench (0,0) [] input
-    minX = toInteger . minimum . L.map fst $ trench
-    minY = toInteger . minimum . L.map snd $ trench
-    circomverence = fst $ L.foldr (\p (acc, prevP) -> (acc + iManhattan p prevP, p)) (0, (0, 0)) trench
-
-solveB :: [String] -> String
-solveB input = show . sum $ [shoelace (minX, minY) trench, circomverence `div` 2, 1]
-  where
-    trench = digLargeTrench (0,0) [] input
-    minX = toInteger . minimum . L.map fst $ trench
-    minY = toInteger . minimum . L.map snd $ trench
-    circomverence = fst $ L.foldr (\p (acc, prevP) -> (acc + iManhattan p prevP, p)) (0, (0, 0)) trench
-
-iManhattan (x, y) (a, b) = abs (x - a) + abs (y - b)
-
-type IPoint = (Integer, Integer)
+      R -> (x+amt, y)
+      L -> (x-amt, y)
+      U -> (x, y-amt)
+      D -> (x, y+amt)
 
 shoelace :: Integral a => (a, a) -> [(a, a)] -> a
 shoelace (minX, minY) s = abs $ area `div` 2
   where
     area = L.foldl (\tot ((x1, y1), (x2, y2)) -> (x1-minX)*(y2-minY) - (y1-minY)*(x2-minX) + tot) 0 zipped
     zipped = zip s (tail s ++ [head s])
-    s' = L.take (length s - 1) s
 
-floodFill :: Set Point -> Set Point
-floodFill trenchMap = floodFill' [(1, -1)] S.empty
+getArea :: [(Direction, Integer)] -> Integer
+getArea instrs = shoelace (minX, minY) trench + circomverence `div` 2 + 1
   where
-    floodFill' :: [Point] -> Set Point -> Set Point
-    floodFill' [] visited = visited
-    floodFill' (pos@(x, y):queue) visited = if pos `S.member` trenchMap || pos `S.member` visited then floodFill' queue visited else
-      floodFill' (queue ++ [(x+i, y+j) | i <- [-1, 0, 1], j <- [-1, 0, 1], abs i /= abs j, (x+i, y+j) `S.notMember` visited]) visited'
-      where
-        visited' = pos `S.insert` visited
+    trench = digTrench (0, 0) [] instrs
+    minX = toInteger . minimum . L.map fst $ trench
+    minY = toInteger . minimum . L.map snd $ trench
+    circomverence = fst $ L.foldr (\p (acc, prevP) -> (acc + manhattan p prevP, p)) (0, head trench) trench
+
+solveA :: [String] -> String
+solveA = show . getArea . L.map (\str -> let [dir, amt, _] = words str in (read dir, read amt))
+
+solveB :: [String] -> String
+solveB = show . getArea . parseInput
+  where
+    parseInput = L.map parseLine
+    parseLine str = let hexCode = L.filter isAlphaNum . last . words $ str in (toDir . last $ hexCode, hexToDecimal . init $ hexCode)
+    toDir i = toEnum . read $ [i]
