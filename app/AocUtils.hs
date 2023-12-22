@@ -14,7 +14,7 @@ type Vector = Point
 vecLength :: Vector -> Int
 vecLength (x, y) = abs x + abs y
 
-manhattan :: Point -> Point -> Int
+manhattan :: Num a => (a, a) -> (a, a) -> a
 manhattan (x1, y1) (x2, y2) = abs (x2 - x1) + abs (y2 - y1)
 
 gauss :: Int -> Int
