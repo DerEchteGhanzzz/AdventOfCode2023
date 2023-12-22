@@ -59,9 +59,9 @@ main = do
   solveDay day18
   solveDay day19
   -- solveDay day20
-  -- solveDay day21
+  solveDay day21
   -- solveDay day22
-  solveDay day23
+  -- solveDay day23
 
 solveDay :: AocDay -> IO ()
 solveDay (MkDay i a b) = do
