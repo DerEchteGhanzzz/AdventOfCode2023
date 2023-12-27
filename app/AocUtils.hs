@@ -5,7 +5,8 @@ import Data.Map as M
 import Debug.Trace
 
 ptrace :: Show a => a -> b -> b
-ptrace a = trace (show a) 
+ptrace a b | trace (show a) False = undefined
+           | otherwise = b
 
 type Point = (Int, Int)
 

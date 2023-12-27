@@ -21,16 +21,26 @@ solveA input = show $ M.size endPoints
     grid = getGrid input
 
 solveB :: [String] -> String
-solveB input = show (M.size evenEndings, M.size oddEndings, M.size evenMiddle, M.size oddMiddle)
+solveB input = show (orange + darkGreenMidline + lightGreenMidline + darkGreenPiramids + lightGreenPiramids)
   where
+    totalSteps = 26501365
+    correction = radius * 96
+    radius = 202300
+    orange = M.size oddFullSquare + M.size oddMiddle
+    darkGreenPiramids = 2 * gauss radius * M.size oddFullSquare
+    lightGreenPiramids = 2 * gauss (radius - 1) * M.size evenFullSquare
+    lightGreenMidline = 202300 * M.size evenFullSquare
+    darkGreenMidline = (202300 + 1 - 2) * M.size oddFullSquare
+    
     (maxX, maxY) = (length . head $ input, length input)
     endings = dijkstra grid (maxX, maxY) start 131
-    oddMiddle = M.filter (<=65) oddEndings
-    evenMiddle = M.filter (<=65) evenEndings
-    -- (evenTopLeft, evenTopRight, evenBotLeft, evenBotRight) = map (\(a, b) -> M.filterWithKey (\(x, y) -> a x && b y) evenEndings) [(), (), (), (), ()]
-    evenEndings = M.filterWithKey (\(x, y) dist -> x < maxX && x >= 0 && y < maxY && y >= 0 && even dist) endings
-    oddEndings = M.filterWithKey (\(x, y) dist -> x < maxX && x >= 0 && y < maxY && y >= 0 && odd dist) endings
-    start = fst . head . M.toList . M.filter (=='S') $ grid
+    oddMiddle = M.filterWithKey (\pos _ -> manhattan start pos <= 65) oddFullSquare
+    evenMiddle = M.filterWithKey (\pos _ -> manhattan start pos <= 65) evenFullSquare
+    -- corners@[oddTopLeft, oddTopRight, oddBotLeft, oddBotRight] = map (\(a, b) -> M.filterWithKey (\(x, y) _ -> a x && b y && (x, y) `M.notMember` oddMiddle) oddFullSquare) [((<sX), (>sY)), ((sX<), (>sY)), ((<sX), (<sY)), ((sX<), (<sY))]
+    (oddFullSquare, evenFullSquare) = M.foldrWithKey (\(x, y) dist (od, ev) -> if x < maxX && x >= 0 && y < maxY && y >= 0 then
+                                                                if even dist then (od, M.insert (x, y) dist ev) else (M.insert (x, y) dist od, ev)
+                                                                else (od, ev)) (M.empty, M.empty) endings
+    start@(sX, sY) = fst . head . M.toList . M.filter (=='S') $ grid
     grid = getGrid input
 
 type Node = (Int, Point)
